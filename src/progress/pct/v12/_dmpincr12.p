@@ -147,6 +147,7 @@ DEFINE            VARIABLE to-int64       AS LOGICAL                 NO-UNDO.
 DEFINE            VARIABLE i-to-int64     AS INTEGER                 NO-UNDO.
 DEFINE            VARIABLE numEntries     AS INTEGER                 NO-UNDO.
 DEFINE            VARIABLE num-diff       AS INTEGER                 NO-UNDO.
+DEFINE            VARIABLE iSeek          AS INT64                   NO-UNDO.
 DEFINE            VARIABLE dumpPol        AS LOGICAL                 NO-UNDO.
 DEFINE            VARIABLE dumpAltBuf     AS LOGICAL                 NO-UNDO.
 DEFINE            VARIABLE p-silentincrd  AS LOGICAL                 NO-UNDO.
@@ -2153,7 +2154,7 @@ DO ON STOP UNDO, LEAVE
         RUN "prodict/user/_usrdbox.p" (INPUT-OUTPUT iact,?,?,new_lang[2]).
       END.
       ELSE
-        iact = p-index-mode NE "active":U.
+        iact = p-index-mode NE "0":U.
 
       IF iact THEN DO:
         ASSIGN s_errorsLogged = TRUE.         
@@ -2230,7 +2231,7 @@ DO ON STOP UNDO, LEAVE
         IF NOT (DICTDB._Index._Active AND (IF iact = ? THEN TRUE ELSE iact)) THEN
         PUT STREAM ddl UNFORMATTED "  INACTIVE" SKIP.
       END.
-      ELSE IF NOT DICTDB._Index._Active AND NOT DICTDB._Index._Unique THEN
+      ELSE IF (NOT DICTDB._Index._Active AND NOT DICTDB._Index._Unique) OR p-index-mode EQ "2":U THEN
           PUT STREAM ddl UNFORMATTED "  INACTIVE" SKIP.
       
       IF DICTDB._Index._Wordidx = 1 THEN 
@@ -2779,6 +2780,8 @@ OUTPUT CLOSE.
       END.
   END.
 
+  ASSIGN  iSeek = SEEK(ddl).
+
   {prodict/dump/dmptrail12.i
     &entries      = "IF dumpPol THEN PUT STREAM ddl UNFORMATTED
                       ""encpolicy=yes"" SKIP.
@@ -2813,6 +2816,7 @@ IF NOT p-batchmode and not p-silentincrd THEN  /* 02/01/29 vap (IZ# 1525) */
 SESSION:IMMEDIATE-DISPLAY = no.
 IF NOT p-batchmode and not p-silentincrd THEN  /* 02/01/29 vap (IZ# 1525) */
   run adecomm/_setcurs.p ("").
+RETURN "SEEK=" + STRING(iSeek).
 
 FINALLY:
    /* make sure we always delete these */
