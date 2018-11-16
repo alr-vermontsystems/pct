@@ -36,13 +36,13 @@ stage('Standard build') {
 }
 
 stage('Full tests') {
- parallel branch1: { testBranch('windows', 'OpenEdge-10.2B', false, '10.2-Win', 10, 32, true) },
-    branch2: { testBranch('windows', 'OpenEdge-11.7', true, '11.7-Win', 11, 32, true) },
-    branch3: { testBranch('linux', 'OpenEdge-10.2B-64b', false, '10.2-64-Linux', 10, 64, true) },
-    branch4: { testBranch('linux', 'OpenEdge-11.6', false, '11.6-Linux', 11, 64, true) },
-    branch5: { testBranch('linux', 'OpenEdge-11.7', false, '11.7-Linux', 11, 64, true) },
-    branch6: { testBranch('linux', 'OpenEdge-10.2B', false, '10.2-Linux', 10, 32, true) },
-    branch7: { testBranch('linux', 'OpenEdge-12.0', false, '12.0-Linux', 12, 64, false) },
+ parallel branch1: { testBranch('windows', 'OpenEdge-10.2B', false, '10.2-Win', 10, 32) },
+    branch2: { testBranch('windows', 'OpenEdge-11.7', true, '11.7-Win', 11, 32) },
+    branch3: { testBranch('linux', 'OpenEdge-10.2B-64b', false, '10.2-64-Linux', 10, 64) },
+    branch4: { testBranch('linux', 'OpenEdge-11.6', false, '11.6-Linux', 11, 64) },
+    branch5: { testBranch('linux', 'OpenEdge-11.7', false, '11.7-Linux', 11, 64) },
+    branch6: { testBranch('linux', 'OpenEdge-10.2B', false, '10.2-Linux', 10, 32) },
+    branch7: { testBranch('linux', 'OpenEdge-12.0', false, '12.0-Linux', 12, 64) },
     failFast: false
   node('linux') {
     // Wildcards not accepted in unstash...
@@ -76,7 +76,7 @@ stage('Sonar') {
   }
 }
 
-def testBranch(nodeName, dlcVersion, stashCoverage, label, majorVersion, arch, profiler) {
+def testBranch(nodeName, dlcVersion, stashCoverage, label, majorVersion, arch) {
   node(nodeName) {
     ws {
       deleteDir()
@@ -85,9 +85,9 @@ def testBranch(nodeName, dlcVersion, stashCoverage, label, majorVersion, arch, p
       unstash name: 'tests'
       withEnv(["TERM=xterm"]) {
         if (isUnix())
-          sh "${antHome}/bin/ant -DDLC=${dlc} -DPROFILER=${profiler} -DTESTENV=${label} -DOE_MAJOR_VERSION=${majorVersion} -DOE_ARCH=${arch} -f tests.xml init dist"
+          sh "${antHome}/bin/ant -DDLC=${dlc} -DPROFILER=true -DTESTENV=${label} -DOE_MAJOR_VERSION=${majorVersion} -DOE_ARCH=${arch} -f tests.xml init dist"
         else
-          bat "${antHome}/bin/ant -DDLC=${dlc} -DPROFILER=${profiler} -DTESTENV=${label} -DOE_MAJOR_VERSION=${majorVersion} -DOE_ARCH=${arch} -f tests.xml init dist"
+          bat "${antHome}/bin/ant -DDLC=${dlc} -DPROFILER=true -DTESTENV=${label} -DOE_MAJOR_VERSION=${majorVersion} -DOE_ARCH=${arch} -f tests.xml init dist"
       }
       stash name: "junit-${label}", includes: 'junitreports-*.zip'
       archiveArtifacts 'emailable-report-*.html'
