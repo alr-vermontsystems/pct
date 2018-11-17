@@ -193,11 +193,11 @@ PROCEDURE initModule:
   END.
   COMPILER:MULTI-COMPILE = multiComp.
   IF lOptFullKw THEN
-    ASSIGN cOpts = 'require-full-keywords' + (IF bAboveEq12 THEN ':warning' ELSE IF bAboveEq1173 THEN ':error' ELSE '').
+    ASSIGN cOpts = 'require-full-keywords' + (IF bAboveEq1173 THEN ':error' ELSE '').
   IF lOptFldQlf THEN
-    ASSIGN cOpts = cOpts + (IF cOpts EQ '' THEN '' ELSE ',') + 'require-field-qualifiers' + (IF bAboveEq12 THEN ':warning' ELSE IF bAboveEq1173 THEN ':error' ELSE '').
+    ASSIGN cOpts = cOpts + (IF cOpts EQ '' THEN '' ELSE ',') + 'require-field-qualifiers' + (IF bAboveEq1173 THEN ':error' ELSE '').
   IF lOptFullNames THEN
-    ASSIGN cOpts = cOpts + (IF cOpts EQ '' THEN '' ELSE ',') + 'require-full-names' + (IF bAboveEq12 THEN ':warning' ELSE IF bAboveEq1173 THEN ':error' ELSE '').
+    ASSIGN cOpts = cOpts + (IF cOpts EQ '' THEN '' ELSE ',') + 'require-full-names' + (IF bAboveEq1173 THEN ':error' ELSE '').
 
   IF ProgPerc GT 0 THEN DO:
     ASSIGN iNrSteps = 100 / ProgPerc.
@@ -370,7 +370,7 @@ PROCEDURE compileXref.
 correctly, so we still stay with the old behavior. I expect OE 12 to fix this issue. */
 /* them into warnings */
 &IF DECIMAL(SUBSTRING(PROVERSION, 1, INDEX(PROVERSION, '.') + 1)) GE 11.7 &THEN
-  IF (cOpts GT "") AND bAboveEq117 AND (NOT bAboveEq12) THEN DO:
+  IF (cOpts GT "") AND bAboveEq117 THEN DO:
     EMPTY TEMP-TABLE ttWarnings.
     COMPILE VALUE(IF lRelative THEN ipInFile ELSE ipInDir + '/':U + ipInFile) SAVE=FALSE OPTIONS cOpts NO-ERROR.
     IF COMPILER:ERROR THEN DO i = 1 TO COMPILER:NUM-MESSAGES:
@@ -391,7 +391,7 @@ correctly, so we still stay with the old behavior. I expect OE 12 to fix this is
   RUN pctcomp.p (IF lRelative THEN ipInFile ELSE ipInDir + '/':U + ipInFile,
                  cSaveDir, debugListingFile,
                  IF Lst AND NOT LstPrepro THEN PCTDir + '/':U + ipInFile ELSE ?,
-                 preprocessFile, cStrXrefFile, cXrefFile, IF bAboveEq12 THEN cOpts ELSE "").
+                 preprocessFile, cStrXrefFile, cXrefFile, "").
 
   ASSIGN opError = COMPILER:ERROR.
   IF NOT opError THEN DO:
